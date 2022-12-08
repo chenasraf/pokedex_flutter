@@ -50,6 +50,7 @@ dependencies:
   intl: ^0.17.0
   intl_generator: ^0.4.0
   sqflite: ^2.2.2
+  strings: ^0.2.2
 
 dev_dependencies:
   flutter_test:

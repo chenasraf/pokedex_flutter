@@ -10,6 +10,7 @@ void main() {
 
 final themeData = ThemeData(
   primarySwatch: Colors.red,
+  useMaterial3: true,
 );
 
 class MyApp extends StatelessWidget {

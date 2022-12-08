@@ -1,4 +1,8 @@
 import 'dart:convert';
+import 'package:strings/strings.dart' as strings;
+
+import '../utils/extensions/iterable_extensions.dart';
+import 'pokemon_species.dart';
 
 class Pokemon {
   const Pokemon({
@@ -20,6 +24,7 @@ class Pokemon {
     required this.stats,
     required this.types,
     required this.weight,
+    required this.speciesData,
   });
 
   final List<Ability> abilities;
@@ -40,11 +45,41 @@ class Pokemon {
   final List<Stat> stats;
   final List<Type> types;
   final int weight;
+  final PokemonSpecies? speciesData;
 
   String? get imageUrl =>
       sprites.other?.home.frontDefault ??
       sprites.frontDefault ??
       sprites.versions?.generationViii.icons.frontDefault;
+
+  String get displayName {
+    final speciesName = speciesData?.names
+        .firstWhereOrNull((n) => n.language.name == 'en')
+        ?.name;
+    return speciesName != null
+        ? strings.capitalize(speciesName)
+        : name.splitMapJoin(
+            RegExp(r'[ -]'),
+            onMatch: (m) =>
+                strings.capitalize(m.input.substring(m.start, m.end)),
+            onNonMatch: (n) => strings.capitalize(n),
+          );
+  }
+
+  String? get formName {
+    final speciesName = species.name;
+    if (speciesName == name) {
+      return null;
+    }
+    final form = name.split('-').last;
+    final presets = {
+      'gmax': 'Gygantamax',
+      'alola': 'Alolan',
+      'galar': 'Galarian',
+      'hisui': 'Hisuian',
+    };
+    return presets[form] ?? strings.capitalize(form);
+  }
 
   Pokemon copyWith({
     List<Ability>? abilities,
@@ -65,6 +100,7 @@ class Pokemon {
     List<Stat>? stats,
     List<Type>? types,
     int? weight,
+    PokemonSpecies? speciesData,
   }) =>
       Pokemon(
         abilities: abilities ?? this.abilities,
@@ -86,6 +122,7 @@ class Pokemon {
         stats: stats ?? this.stats,
         types: types ?? this.types,
         weight: weight ?? this.weight,
+        speciesData: speciesData ?? this.speciesData,
       );
 
   factory Pokemon.fromRawJson(String str) => Pokemon.fromJson(json.decode(str));
@@ -115,6 +152,10 @@ class Pokemon {
         stats: List<Stat>.from(json["stats"].map((x) => Stat.fromJson(x))),
         types: List<Type>.from(json["types"].map((x) => Type.fromJson(x))),
         weight: json["weight"],
+        speciesData: json['species_data'] != null
+            ? PokemonSpecies.fromJson(json['species_data'])
+            : null,
+        // speciesData: PokemonSpecies.fromJson(json['species_data']),
       );
 
   Map<String, dynamic> toJson() => {
@@ -136,6 +177,7 @@ class Pokemon {
         "stats": List<dynamic>.from(stats.map((x) => x.toJson())),
         "types": List<dynamic>.from(types.map((x) => x.toJson())),
         "weight": weight,
+        "species_data": speciesData?.toJson(),
       };
 }
 
