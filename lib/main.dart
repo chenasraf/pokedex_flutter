@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'core/routes.dart';
+import 'modules/PokemonDetails/pokemon_details_page.dart';
 import 'modules/PokemonList/pokemon_list_controller.dart';
 import 'modules/PokemonList/pokemon_list_page.dart';
 
@@ -19,13 +21,15 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    debugPrint('build MyApp');
-    return MaterialApp(
-      title: 'Pokedex',
-      theme: themeData,
-      home: ChangeNotifierProvider(
-        create: (_) => PokemonListController(),
-        child: const PokemonListPage(),
+    return ChangeNotifierProvider(
+      create: (_) => PokemonListController(),
+      child: MaterialApp(
+        title: 'Pokedex',
+        theme: themeData,
+        routes: {
+          Routes.home: (context) => const PokemonListPage(),
+          Routes.pokemonDetails: (context) => const PokemonDetailsPage(),
+        },
       ),
     );
   }

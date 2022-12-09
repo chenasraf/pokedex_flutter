@@ -7,6 +7,7 @@ import '../../core/models/pokemon.dart';
 class PokemonListController extends ChangeNotifier {
   bool loading = false;
   Iterable<Pokemon> pokemonList = [];
+  Map<String, Pokemon> pokemonMap = {};
 
   PokemonListController() {
     debugPrint('PokemonListController()');
@@ -19,7 +20,10 @@ class PokemonListController extends ChangeNotifier {
   Future<void> getPokemon() async {
     debugPrint('getPokemon()');
     loading = true;
-    await Future.microtask(() => pokemonList = getAllPokemon().values);
+    await Future.microtask(() {
+      pokemonMap = getAllPokemon();
+      pokemonList = pokemonMap.values;
+    });
     loading = false;
     notifyListeners();
   }

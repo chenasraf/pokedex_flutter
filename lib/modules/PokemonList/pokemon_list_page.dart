@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:pokedex/data/pokemon.dart';
 import 'package:pokedex/modules/PokemonList/pokemon_list_controller.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../core/models/pokemon.dart';
+import '../../widgets/pokemon_list_item.dart';
 
 class PokemonListPage extends StatefulWidget {
   const PokemonListPage({super.key});
@@ -75,7 +74,8 @@ class _PokemonListPageState extends State<PokemonListPage> {
                 )
               : const Text('Pokedex')),
       floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.catching_pokemon),
+        // child: const Icon(Icons.catching_pokemon),
+        child: const Icon(Icons.search),
         onPressed: () => setState(() => searching = !searching),
       ),
       body: Consumer<PokemonListController>(
@@ -90,33 +90,9 @@ class _PokemonListPageState extends State<PokemonListPage> {
           }
           return ListView.builder(
             itemCount: filtered.length,
-            itemBuilder: (context, index) {
-              final poke = filtered.elementAt(index);
-              return Card(
-                child: ListTile(
-                  leading: poke.imageUrl != null
-                      ? SizedBox.square(
-                          dimension: 64,
-                          child: CachedNetworkImage(
-                            imageUrl: poke.imageUrl!,
-                            width: 64,
-                            height: 64,
-                            progressIndicatorBuilder:
-                                (context, url, progress) => const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                            errorWidget: (context, url, error) =>
-                                const Icon(Icons.error),
-                          ),
-                        )
-                      : const SizedBox.square(dimension: 64),
-                  title: Text([
-                    poke.displayName,
-                    poke.formName != null ? '(${poke.formName})' : null,
-                  ].whereType<String>().join(' ')),
-                ),
-              );
-            },
+            itemBuilder: (context, index) => PokemonListItem(
+              poke: filtered.elementAt(index),
+            ),
           );
         },
       ),
