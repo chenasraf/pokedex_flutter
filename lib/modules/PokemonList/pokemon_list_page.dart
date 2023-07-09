@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:pokedex/core/models/pokemon_helper.dart';
 import 'package:pokedex/modules/PokemonList/pokemon_list_controller.dart';
+import 'package:pokemon_api/pokemon_api.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/models/pokemon.dart';
 import '../../widgets/pokemon_list_item.dart';
 
 class PokemonListPage extends StatefulWidget {
@@ -17,6 +18,8 @@ class _PokemonListPageState extends State<PokemonListPage> {
   late TextEditingController search;
   bool searching = false;
   bool afterInit = false;
+
+  PokemonListController get ctrl => PokemonListController.of(context);
 
   @override
   void initState() {
@@ -54,27 +57,37 @@ class _PokemonListPageState extends State<PokemonListPage> {
     super.dispose();
   }
 
-  PokemonListController get ctrl => PokemonListController.of(context);
-
-  Iterable<Pokemon> _applyFilters(Iterable<Pokemon> list) =>
-      list.where((poke) => [poke.displayName, poke.formName]
-          .join(' ')
-          .toLowerCase()
-          .contains(search.text.toLowerCase()));
+  Iterable<Pokemon> _applyFilters(Iterable<Pokemon> list) => list.where((poke) {
+        final species = ctrl.speciesMap[poke.species.name];
+        return [
+          species != null ? PokemonHelper.displayName(species) : null,
+          species != null ? PokemonHelper.formName(poke, species) : null,
+          poke.name,
+        ].whereType<String>().join(' ').toLowerCase().contains(search.text.toLowerCase());
+      });
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("pokemon count: ${ctrl.pokemonList.length}");
     return Scaffold(
       appBar: AppBar(
-          title: searching
-              ? TextField(
-                  controller: search,
-                  decoration: const InputDecoration(hintText: 'Search by name'),
-                  autofocus: true,
-                )
-              : const Text('Pokedex')),
+        title: searching
+            ? TextField(
+                controller: search,
+                decoration: InputDecoration(
+                  hintText: 'Search by name',
+                  suffixIcon: search.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => search.clear(),
+                        )
+                      : null,
+                ),
+                autofocus: true,
+              )
+            : const Text('Pokedex'),
+      ),
       floatingActionButton: FloatingActionButton(
-        // child: const Icon(Icons.catching_pokemon),
         child: const Icon(Icons.search),
         onPressed: () => setState(() => searching = !searching),
       ),
@@ -99,3 +112,4 @@ class _PokemonListPageState extends State<PokemonListPage> {
     );
   }
 }
+

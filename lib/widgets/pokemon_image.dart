@@ -1,22 +1,24 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-
-import '../core/models/pokemon.dart';
+import 'package:pokedex/core/models/pokemon_helper.dart';
+import 'package:pokemon_api/pokemon_api.dart';
 
 class PokemonImage extends StatelessWidget {
   const PokemonImage({
     super.key,
     this.size = 64,
     required this.poke,
+    this.shiny = false,
   });
 
   final Pokemon poke;
   final double size;
+  final bool shiny;
 
   @override
   Widget build(BuildContext context) {
     return CachedNetworkImage(
-      imageUrl: poke.imageUrl!,
+      imageUrl: !shiny ? PokemonHelper.imageUrl(poke)! : PokemonHelper.shinyImageUrl(poke)!,
       width: size,
       height: size,
       progressIndicatorBuilder: (context, url, progress) => const Center(
@@ -26,3 +28,4 @@ class PokemonImage extends StatelessWidget {
     );
   }
 }
+
