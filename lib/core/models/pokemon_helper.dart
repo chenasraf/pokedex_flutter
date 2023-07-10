@@ -5,24 +5,26 @@ import '../utils/extensions/string_extensions.dart';
 import '../utils/extensions/iterable_extensions.dart';
 
 class PokemonHelper {
-  static String? imageUrl(Pokemon pokemon) =>
-      pokemon.sprites.other?.home.frontDefault ??
-      pokemon.sprites.frontDefault ??
-      pokemon.sprites.versions?.generation8.icons.frontDefault;
+  static String? imageUrl(Pokemon pokemon) => [
+        pokemon.sprites.frontDefault,
+        pokemon.sprites.other?.home.frontDefault,
+        pokemon.sprites.versions?.generation8.icons.frontDefault,
+      ].firstWhereOrNull((url) => url != null);
 
-  static String? shinyImageUrl(Pokemon pokemon) =>
-      pokemon.sprites.other?.home.frontShiny ??
-      pokemon.sprites.frontShiny ??
-      pokemon.sprites.versions?.generation8.icons.frontShiny;
+  static String? shinyImageUrl(Pokemon pokemon) => [
+        pokemon.sprites.frontShiny,
+        pokemon.sprites.other?.home.frontShiny,
+        pokemon.sprites.versions?.generation8.icons.frontShiny,
+      ].firstWhereOrNull((url) => url != null);
 
-  static String displayName(PokemonSpecies pokemon) {
-    final speciesName = pokemon.names.firstWhereOrNull((n) => n.language.name == 'en')?.name;
-
-    return speciesName != null ? strings.capitalize(speciesName) : pokemon.name.capitalize();
+  static String displayName(Pokemon pokemon, PokemonSpecies? species) {
+    final pokeName = pokemon.name;
+    final speciesName = species?.names.firstWhereOrNull((n) => n.language.name == 'en')?.name;
+    return speciesName != null ? strings.capitalize(speciesName) : species?.name.capitalize() ?? pokeName.capitalize();
   }
 
-  static String? formName(Pokemon pokemon, PokemonSpecies species) {
-    final speciesName = species.name;
+  static String? formName(Pokemon pokemon, PokemonSpecies? species) {
+    final speciesName = species?.name;
     if (speciesName == pokemon.name) {
       return null;
     }
@@ -35,4 +37,13 @@ class PokemonHelper {
     };
     return presets[form] ?? form.capitalize();
   }
+
+  static String getMoveName(Move move) {
+    if (move.names.isEmpty) {
+      return move.name.capitalize();
+    }
+
+    return move.names.firstWhereOrNull((n) => n.language.name == 'en')?.name ?? move.name.capitalize();
+  }
 }
+

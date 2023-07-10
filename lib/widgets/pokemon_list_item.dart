@@ -19,7 +19,6 @@ class PokemonListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final species = PokemonListController.of(context).speciesMap[poke.species.name];
-    print('poke: ${poke.name}, species: ${species?.name}');
     return Card(
       child: InkWell(
         onTap: () => Navigator.pushNamed(
@@ -42,8 +41,8 @@ class PokemonListItem extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               [
-                species != null ? PokemonHelper.displayName(species) : poke.name.capitalize(),
-                species != null && PokemonHelper.formName(poke, species) != null ? '(${PokemonHelper.formName(poke, species)})' : null,
+                PokemonHelper.displayName(poke, species),
+                PokemonHelper.formName(poke, species) != null ? '(${PokemonHelper.formName(poke, species)})' : null,
               ].whereType<String>().join(' '),
               style: Theme.of(context).textTheme.titleMedium,
             ),

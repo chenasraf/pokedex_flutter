@@ -23,6 +23,7 @@ class PokemonListController extends ChangeNotifier {
     final pokemonSpeciesListResources =
         await PokemonAPIClient.instance.getPokemonSpeciesList(PageOptions(), maxPages: null);
 
+    debugPrint('Got lists, fetching batches...');
     final pokemonFutures = <Future<Pokemon>>[];
     final speciesFutures = <Future<PokemonSpecies>>[];
 
@@ -41,21 +42,42 @@ class PokemonListController extends ChangeNotifier {
         pokemonFutures.clear();
         speciesFutures.clear();
       }
+      pokemonMap = Map.fromEntries(pokemonList.map((e) => MapEntry(e.name, e)));
+      speciesMap = Map.fromEntries(speciesList.map((e) => MapEntry(e.name, e)));
+      notifyListeners();
       i++;
+    }
+
+    for (final resource in pokemonSpeciesListResources.skip(i)) {
+      speciesFutures.add(resource.get());
+
+      if (speciesFutures.length == 5) {
+        await Future.wait(speciesFutures).then((value) => speciesList.addAll(value));
+        speciesFutures.clear();
+      }
+      speciesMap = Map.fromEntries(speciesList.map((e) => MapEntry(e.name, e)));
+      notifyListeners();
     }
 
     if (pokemonFutures.isNotEmpty) {
       await Future.wait(pokemonFutures).then((value) => pokemonList.addAll(value));
+      pokemonMap = Map.fromEntries(pokemonList.map((e) => MapEntry(e.name, e)));
     }
 
     if (speciesFutures.isNotEmpty) {
       await Future.wait(speciesFutures).then((value) => speciesList.addAll(value));
+      speciesMap = Map.fromEntries(speciesList.map((e) => MapEntry(e.name, e)));
     }
+
+    notifyListeners();
+    debugPrint('Got all batches, building maps...');
 
     pokemonMap = Map.fromEntries(pokemonList.map((e) => MapEntry(e.name, e)));
     speciesMap = Map.fromEntries(speciesList.map((e) => MapEntry(e.name, e)));
     loading = false;
+
     notifyListeners();
+    debugPrint('Done');
   }
 }
 

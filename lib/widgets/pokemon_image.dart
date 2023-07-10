@@ -17,8 +17,14 @@ class PokemonImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var img = PokemonHelper.imageUrl(poke);
+    var shinyImg = PokemonHelper.shinyImageUrl(poke);
+    if (img == null) {
+      return const SizedBox.square(dimension: 64, child: Placeholder());
+    }
+
     return CachedNetworkImage(
-      imageUrl: !shiny ? PokemonHelper.imageUrl(poke)! : PokemonHelper.shinyImageUrl(poke)!,
+      imageUrl: !shiny ? img : shinyImg ?? img,
       width: size,
       height: size,
       progressIndicatorBuilder: (context, url, progress) => const Center(

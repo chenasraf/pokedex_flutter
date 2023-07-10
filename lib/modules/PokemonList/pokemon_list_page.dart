@@ -29,19 +29,14 @@ class _PokemonListPageState extends State<PokemonListPage> {
     afterInit = ctrl.pokemonList.isNotEmpty;
     search.addListener(_searchListener);
 
-    if (!afterInit) {
-      PokemonListController.of(context).addListener(() {
-        if (afterInit) {
-          return;
-        }
-        if (ctrl.pokemonList.isNotEmpty) {
-          afterInit = true;
-          setState(() {
-            filtered = _applyFilters(ctrl.pokemonList);
-          });
-        }
-      });
-    }
+    PokemonListController.of(context).addListener(() {
+      if (ctrl.pokemonList.isNotEmpty) {
+        afterInit = true;
+        setState(() {
+          filtered = _applyFilters(ctrl.pokemonList);
+        });
+      }
+    });
   }
 
   void _searchListener() {
@@ -60,15 +55,19 @@ class _PokemonListPageState extends State<PokemonListPage> {
   Iterable<Pokemon> _applyFilters(Iterable<Pokemon> list) => list.where((poke) {
         final species = ctrl.speciesMap[poke.species.name];
         return [
-          species != null ? PokemonHelper.displayName(species) : null,
+          species != null ? PokemonHelper.displayName(poke, species) : null,
           species != null ? PokemonHelper.formName(poke, species) : null,
           poke.name,
         ].whereType<String>().join(' ').toLowerCase().contains(search.text.toLowerCase());
-      });
+      }).toList()
+        ..sort((a, b) {
+          final ao = a.order == -1 ? a.id : a.order;
+          final bo = b.order == -1 ? b.id : b.order;
+          return ao.compareTo(bo);
+        });
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("pokemon count: ${ctrl.pokemonList.length}");
     return Scaffold(
       appBar: AppBar(
         title: searching
@@ -85,7 +84,21 @@ class _PokemonListPageState extends State<PokemonListPage> {
                 ),
                 autofocus: true,
               )
-            : const Text('Pokedex'),
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Pokedex'),
+                  if (ctrl.loading)
+                    const Padding(
+                      padding: EdgeInsets.only(left: 8),
+                      child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                ],
+              ),
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.search),
@@ -93,14 +106,6 @@ class _PokemonListPageState extends State<PokemonListPage> {
       ),
       body: Consumer<PokemonListController>(
         builder: (context, ctrl, child) {
-          if (ctrl.loading) {
-            return const Center(
-              child: SizedBox.square(
-                dimension: 150,
-                child: CircularProgressIndicator(),
-              ),
-            );
-          }
           return ListView.builder(
             itemCount: filtered.length,
             itemBuilder: (context, index) => PokemonListItem(
