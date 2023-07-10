@@ -20,13 +20,14 @@ class PokemonImage extends StatelessWidget {
     var img = PokemonHelper.imageUrl(poke);
     var shinyImg = PokemonHelper.shinyImageUrl(poke);
     if (img == null) {
-      return const SizedBox.square(dimension: 64, child: Placeholder());
+      return SizedBox.square(dimension: size, child: const Placeholder());
     }
 
     return CachedNetworkImage(
       imageUrl: !shiny ? img : shinyImg ?? img,
       width: size,
       height: size,
+      fit: BoxFit.cover,
       progressIndicatorBuilder: (context, url, progress) => const Center(
         child: CircularProgressIndicator(),
       ),

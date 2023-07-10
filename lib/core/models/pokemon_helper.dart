@@ -7,14 +7,27 @@ import '../utils/extensions/iterable_extensions.dart';
 class PokemonHelper {
   static String? imageUrl(Pokemon pokemon) => [
         pokemon.sprites.frontDefault,
-        pokemon.sprites.other?.home.frontDefault,
-        pokemon.sprites.versions?.generation8.icons.frontDefault,
+        pokemon.sprites.other?.home?.frontDefault,
+        pokemon.sprites.versions?.generation8?.icons?.frontDefault,
       ].firstWhereOrNull((url) => url != null);
 
   static String? shinyImageUrl(Pokemon pokemon) => [
         pokemon.sprites.frontShiny,
-        pokemon.sprites.other?.home.frontShiny,
-        pokemon.sprites.versions?.generation8.icons.frontShiny,
+        pokemon.sprites.other?.home?.frontShiny,
+        pokemon.sprites.versions?.generation8?.icons?.frontShiny,
+      ].firstWhereOrNull((url) => url != null);
+
+  static String? iconImageUrl(Pokemon pokemon) => [
+        pokemon.sprites.versions?.generation8?.icons?.frontDefault,
+        pokemon.sprites.versions?.generation7?.icons?.frontDefault,
+        pokemon.sprites.versions?.generation6?.xy?.frontDefault,
+        pokemon.sprites.versions?.generation5?.blackWhite?.frontDefault,
+        pokemon.sprites.versions?.generation4?.platinum?.frontDefault,
+        pokemon.sprites.versions?.generation3?.emerald?.frontDefault,
+        pokemon.sprites.versions?.generation2?.crystal?.frontDefault,
+        pokemon.sprites.versions?.generation1?.yellow?.frontDefault,
+        pokemon.sprites.other?.officialArtwork?.frontDefault,
+        pokemon.sprites.other?.home?.frontDefault
       ].firstWhereOrNull((url) => url != null);
 
   static String displayName(Pokemon pokemon, PokemonSpecies? species) {
@@ -44,6 +57,11 @@ class PokemonHelper {
     }
 
     return move.names.firstWhereOrNull((n) => n.language.name == 'en')?.name ?? move.name.capitalize();
+  }
+
+  static String getMoveDescription(Move move) {
+    return move.flavorTextEntries.firstWhereOrNull((n) => n.language.name == 'en')?.flavorText ??
+        (move.flavorTextEntries.isNotEmpty ? move.flavorTextEntries.first.flavorText : '');
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:localstore/localstore.dart';
 import 'package:pokemon_api/pokemon_api.dart';
 import 'package:provider/provider.dart';
 

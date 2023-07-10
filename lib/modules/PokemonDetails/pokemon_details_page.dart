@@ -1,7 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:pokedex/core/models/pokemon_helper.dart';
-import 'package:pokedex/core/utils/extensions/string_extensions.dart';
 import 'package:pokemon_api/pokemon_api.dart';
+import '../../core/models/pokemon_helper.dart';
+import '../../core/utils/extensions/string_extensions.dart';
+import '../../widgets/pokemon_move.dart';
 import 'pokemon_details_args.dart';
 import '../PokemonList/pokemon_list_controller.dart';
 import '../../widgets/pokemon_image.dart';
@@ -46,40 +48,120 @@ class PokemonDetailsPage extends StatelessWidget {
               PokemonImage(poke: poke, size: imgSize, shiny: true),
             ],
           ),
+      () => const Text('Weaknesses', textScaleFactor: 1.2),
+      () => FutureBuilder(
+            future: Future.wait(poke.types.map((t) => t.type.get())),
+            builder: (context, snapshot) {
+              final data = snapshot.hasData
+                  ? snapshot.data!
+                      .toList()
+                      .fold(<NamedAPIResource>[], (prev, type) => prev..addAll(type.damageRelations.doubleDamageFrom))
+                  : <NamedAPIResource>[];
+              return Wrap(
+                children: [
+                  for (final weakness in data)
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Chip(
+                        label: Text('${weakness.name.capitalize()} x2'),
+                      ),
+                    )
+                ],
+              );
+            },
+          ),
+      () => const Text('Abilities', textScaleFactor: 1.2),
+      () => Wrap(
+            children: [
+              for (final ability in poke.abilities)
+                FutureBuilder(
+                  future: ability.ability.get(),
+                  builder: (context, snapshot) {
+                    return Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Chip(
+                        label: Text(snapshot.data?.name.capitalize() ?? '...'),
+                      ),
+                    );
+                  },
+                ),
+            ],
+          ),
+      () => const Text('Moves', textScaleFactor: 1.2),
       () => const Text('Level Moves', textScaleFactor: 1.2),
-      ...levelMoves
-          .map((move) => () => FutureBuilder(
-                future: move.move?.get(),
-                builder: (context, snapshot) {
-                  final versionDet =
-                      move.versionGroupDetails.firstWhere((det) => det.moveLearnMethod?.name == 'level-up');
-                  final moveName = snapshot.hasData && snapshot.data is Move
-                      ? PokemonHelper.getMoveName(snapshot.data as Move)
-                      : move.move?.name.capitalize();
-                  final level = versionDet.levelLearnedAt;
-                  return Text('$moveName (Lv. $level)');
-                },
-              ))
-          .toList(),
+      () => LayoutBuilder(
+            builder: (context, constraints) {
+              return Wrap(
+                children: [
+                  for (final move in levelMoves)
+                    FutureBuilder(
+                      future: move.move?.get(),
+                      builder: (context, snapshot) {
+                        return SizedBox(
+                          width: constraints.maxWidth / 2,
+                          child: PokemonMoveCard.level(
+                            move: snapshot.data,
+                            versionDetails: move.versionGroupDetails,
+                            loading: !snapshot.hasData,
+                          ),
+                        );
+                      },
+                    ),
+                ],
+              );
+            },
+          ),
       () => const SizedBox(height: 16),
       () => const Text('TM Moves', textScaleFactor: 1.2),
-      ...tmMoves
-          .map((move) => () => FutureBuilder(
-                future: move.move?.get(),
-                builder: (context, snapshot) {
-                  final moveName = snapshot.hasData
-                      ? PokemonHelper.getMoveName(snapshot.data as Move)
-                      : move.move?.name.capitalize() ?? "Unknown Move";
-                  return Text(moveName);
-                },
-              ))
-          .toList(),
+      () => LayoutBuilder(
+            builder: (context, constraints) {
+              return Wrap(
+                children: [
+                  for (final move in tmMoves)
+                    FutureBuilder(
+                      future: move.move?.get(),
+                      builder: (context, snapshot) {
+                        return SizedBox(
+                          width: constraints.maxWidth / 2,
+                          child: PokemonMoveCard.tm(
+                            move: snapshot.data,
+                            versionDetails: move.versionGroupDetails,
+                            loading: !snapshot.hasData,
+                          ),
+                        );
+                      },
+                    ),
+                ],
+              );
+            },
+          ),
       () => Text('Order: ${poke.order}'),
       () => SelectableText('img: ${PokemonHelper.imageUrl(poke)}')
     ];
+
+    final icon = PokemonHelper.iconImageUrl(poke);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(PokemonHelper.displayName(poke, species)),
+        centerTitle: true,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (icon != null)
+              Container(
+                color: Colors.purple,
+                child: CachedNetworkImage(
+                  imageUrl: icon,
+                  width: 40,
+                  height: 40,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            // const SizedBox(width: 8),
+            Text(PokemonHelper.displayName(poke, species)),
+          ],
+        ),
       ),
       body: ListView.builder(
         itemBuilder: (context, index) => children[index].call(),
