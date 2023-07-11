@@ -63,5 +63,69 @@ class PokemonHelper {
     return move.flavorTextEntries.firstWhereOrNull((n) => n.language.name == 'en')?.flavorText ??
         (move.flavorTextEntries.isNotEmpty ? move.flavorTextEntries.first.flavorText : '');
   }
+
+  static List<TypeMultiplier> getTypeDefenseMultipliers(List<Type> types) {
+    final typeMap = <String, double>{};
+    final typeNameMap = <String, NamedAPIResource>{};
+    for (final type in types) {
+      for (final damage in type.damageRelations.doubleDamageFrom) {
+        typeNameMap[damage.name] ??= damage;
+        typeMap[damage.name] = (typeMap[damage.name] ?? 1) * 2;
+      }
+      for (final damage in type.damageRelations.halfDamageFrom) {
+        typeNameMap[damage.name] ??= damage;
+        typeMap[damage.name] = (typeMap[damage.name] ?? 1) * 0.5;
+      }
+      for (final damage in type.damageRelations.noDamageFrom) {
+        typeNameMap[damage.name] ??= damage;
+        typeMap[damage.name] = (typeMap[damage.name] ?? 1) * 0;
+      }
+    }
+    return typeMap.entries.map((e) {
+      return TypeMultiplier(typeNameMap[e.key]!, e.value);
+    }).toList();
+  }
+
+  static List<TypeMultiplier> getTypeAttackMultipliers(List<Type> types) {
+    final typeMap = <String, double>{};
+    final typeNameMap = <String, NamedAPIResource>{};
+    for (final type in types) {
+      for (final damage in type.damageRelations.doubleDamageTo) {
+        typeNameMap[damage.name] ??= damage;
+        typeMap[damage.name] = (typeMap[damage.name] ?? 1) * 2;
+      }
+      for (final damage in type.damageRelations.halfDamageTo) {
+        typeNameMap[damage.name] ??= damage;
+        typeMap[damage.name] = (typeMap[damage.name] ?? 1) * 0.5;
+      }
+      for (final damage in type.damageRelations.noDamageTo) {
+        typeNameMap[damage.name] ??= damage;
+        typeMap[damage.name] = (typeMap[damage.name] ?? 1) * 0;
+      }
+    }
+    return typeMap.entries.map((e) {
+      return TypeMultiplier(typeNameMap[e.key]!, e.value);
+    }).toList();
+  }
+}
+
+class TypeMultiplier {
+  TypeMultiplier(this.type, this.multiplier);
+
+  final NamedAPIResource type;
+  final double multiplier;
+
+  String get name => type.name;
+  String get multiplierString =>
+      {
+        0.5: '½',
+        0.25: '¼',
+      }[multiplier] ??
+      multiplier.toStringAsFixed(2).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
+
+  @override
+  String toString() {
+    return '$name x $multiplierString';
+  }
 }
 

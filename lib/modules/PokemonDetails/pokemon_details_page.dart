@@ -48,22 +48,60 @@ class PokemonDetailsPage extends StatelessWidget {
               PokemonImage(poke: poke, size: imgSize, shiny: true),
             ],
           ),
-      () => const Text('Weaknesses', textScaleFactor: 1.2),
+      () => const Text('Weak against', textScaleFactor: 1.2),
       () => FutureBuilder(
             future: Future.wait(poke.types.map((t) => t.type.get())),
             builder: (context, snapshot) {
               final data = snapshot.hasData
-                  ? snapshot.data!
-                      .toList()
-                      .fold(<NamedAPIResource>[], (prev, type) => prev..addAll(type.damageRelations.doubleDamageFrom))
-                  : <NamedAPIResource>[];
+                  ? PokemonHelper.getTypeDefenseMultipliers(snapshot.data!.toList()).where((e) => e.multiplier >= 2)
+                  : <TypeMultiplier>[];
               return Wrap(
                 children: [
-                  for (final weakness in data)
+                  for (final type in data)
                     Padding(
                       padding: const EdgeInsets.all(4.0),
                       child: Chip(
-                        label: Text('${weakness.name.capitalize()} x2'),
+                        label: Text('${type.type.name.capitalize()} x ${type.multiplierString}'),
+                      ),
+                    )
+                ],
+              );
+            },
+          ),
+      () => const Text('Resistant to', textScaleFactor: 1.2),
+      () => FutureBuilder(
+            future: Future.wait(poke.types.map((t) => t.type.get())),
+            builder: (context, snapshot) {
+              final data = snapshot.hasData
+                  ? PokemonHelper.getTypeDefenseMultipliers(snapshot.data!.toList()).where((e) => e.multiplier < 1 && e.multiplier > 0)
+                  : <TypeMultiplier>[];
+              return Wrap(
+                children: [
+                  for (final type in data)
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Chip(
+                        label: Text('${type.type.name.capitalize()} x ${type.multiplierString}'),
+                      ),
+                    )
+                ],
+              );
+            },
+          ),
+      () => const Text('No damage from', textScaleFactor: 1.2),
+      () => FutureBuilder(
+            future: Future.wait(poke.types.map((t) => t.type.get())),
+            builder: (context, snapshot) {
+              final data = snapshot.hasData
+                  ? PokemonHelper.getTypeDefenseMultipliers(snapshot.data!.toList()).where((e) => e.multiplier == 0)
+                  : <TypeMultiplier>[];
+              return Wrap(
+                children: [
+                  for (final type in data)
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Chip(
+                        label: Text('${type.type.name.capitalize()} x ${type.multiplierString}'),
                       ),
                     )
                 ],
@@ -150,7 +188,7 @@ class PokemonDetailsPage extends StatelessWidget {
           children: [
             if (icon != null)
               Container(
-                color: Colors.purple,
+                // color: Colors.purple,
                 child: CachedNetworkImage(
                   imageUrl: icon,
                   width: 40,
@@ -163,9 +201,12 @@ class PokemonDetailsPage extends StatelessWidget {
           ],
         ),
       ),
-      body: ListView.builder(
-        itemBuilder: (context, index) => children[index].call(),
-        itemCount: children.length,
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ListView.builder(
+          itemBuilder: (context, index) => children[index].call(),
+          itemCount: children.length,
+        ),
       ),
     );
   }
